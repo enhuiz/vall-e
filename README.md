@@ -5,6 +5,6 @@ An unofficial (toy) implementation of VALL-E, based on the [encodec](https://git
 ## TODO
 
 - [x] AR model for the first quantizer.
-- [ ] Built-in decode.
+- [x] Audio decoding from tokens.
 - [ ] NAR model for the rest quantizers.
 - [ ] Trainers for both models.

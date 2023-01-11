@@ -6,6 +6,7 @@ import torch
 import torchaudio
 from encodec import EncodecModel
 from encodec.utils import convert_audio
+from torch import Tensor
 from tqdm import tqdm
 
 
@@ -16,6 +17,17 @@ def _load_model(device="cuda"):
     model.set_target_bandwidth(6.0)
     model.to(device)
     return model
+
+
+@torch.inference_mode()
+def decode(codes: Tensor, device="cuda"):
+    """
+    Args:
+        codes: (b k t)
+    """
+    assert codes.dim() == 3
+    model = _load_model(device)
+    return model.decode([(codes, None)]), model.sample_rate
 
 
 def replace_file_extension(path, suffix):
