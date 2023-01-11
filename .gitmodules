@@ -1,0 +1,3 @@
+[submodule "mini_vall_e/utils"]
+	path = vall_e/utils
+	url = https://github.com/enhuiz/pytorch-training-utils.git
