@@ -81,8 +81,8 @@ class VALLEDatset(Dataset):
         paths,
         phone_symmap=None,
         spkr_symmap=None,
-        min_phones=10,
-        max_phones=100,
+        min_phones=cfg.min_phones,
+        max_phones=cfg.max_phones,
         training=False,
         extra_paths_by_spkr_name: dict[str, list] = {},
     ):
@@ -141,7 +141,7 @@ class VALLEDatset(Dataset):
             )
             choices = [better_not]
 
-        for _ in range(10):
+        for _ in range(cfg.max_prompts):
             path = random.choice(choices)
             prom_list.append(_load_quants(path))
             if random.random() > cfg.p_additional_prompt:

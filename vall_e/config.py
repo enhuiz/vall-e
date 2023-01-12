@@ -17,7 +17,8 @@ class Config(ConfigBase):
     def sample_rate(self):
         return 24_000
 
-    p_additional_prompt: float = 0.5
+    p_additional_prompt: float = 0.8
+    max_prompts: int = 3
 
     token_dim: int = 256
     num_tokens: int = 1024
@@ -36,6 +37,9 @@ class Config(ConfigBase):
 
     model: str = "ar-quarter"
     spkr_name_getter: str = "lambda p: p.parts[-2]"
+
+    min_phones: int = 10
+    max_phones: int = 50
 
     @cached_property
     def get_spkr(self):
