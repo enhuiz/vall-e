@@ -8,7 +8,7 @@ def get_model(name):
 
     if name.startswith("ar"):
         Model = AR
-    elif str().startswith("nar"):
+    elif name.startswith("nar"):
         Model = NAR
     else:
         raise ValueError("Model name should start with AR or NAR.")
