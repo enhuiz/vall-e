@@ -1,3 +1,5 @@
+![Image from VALL-E paper.](https://valle-demo.github.io/pics/Overview.jpg)
+
 # VALL-E
 
 An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/), based on the [EnCodec](https://github.com/facebookresearch/encodec) tokenizer.
@@ -45,3 +47,23 @@ python -m vall_e.train yaml=config/your_data/ar_or_nar.yml
 - [x] Implement AdaLN for NAR model.
 - [x] Sample-wise quantization level sampling for NAR training.
 - [ ] Pre-trained checkpoint and demos on LibriTTS
+
+## Citations
+
+```
+@article{wang2023neural,
+  title={Neural Codec Language Models are Zero-Shot Text to Speech Synthesizers},
+  author={Wang, Chengyi and Chen, Sanyuan and Wu, Yu and Zhang, Ziqiang and Zhou, Long and Liu, Shujie and Chen, Zhuo and Liu, Yanqing and Wang, Huaming and Li, Jinyu and others},
+  journal={arXiv preprint arXiv:2301.02111},
+  year={2023}
+}
+```
+
+```
+@article{defossez2022highfi,
+  title={High Fidelity Neural Audio Compression},
+  author={Défossez, Alexandre and Copet, Jade and Synnaeve, Gabriel and Adi, Yossi},
+  journal={arXiv preprint arXiv:2210.13438},
+  year={2022}
+}
+```
