@@ -1,6 +1,6 @@
 # VALL-E
 
-An unofficial (toy) implementation of [VALL-E](https://valle-demo.github.io/), based on the [encodec](https://github.com/facebookresearch/encodec) tokenizer.
+An unofficial (toy) implementation of [VALL-E](https://valle-demo.github.io/), based on the [EnCodec](https://github.com/facebookresearch/encodec) tokenizer.
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/enhuiz)
 
