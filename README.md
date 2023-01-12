@@ -4,21 +4,11 @@ An unofficial (toy) implementation of [VALL-E](https://valle-demo.github.io/), b
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/enhuiz)
 
-## Requirements
-
-### 1. Clone the project
+## Install
 
 ```
-git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
+pip install git+https://github.com/enhuiz/vall-e
 ```
-
-### 2. Install requirements
-
-```
-pip install -r requirements.txt
-```
-
-Note: You may need to install additional requirements as you run the script.
 
 ## Data Preparation
 

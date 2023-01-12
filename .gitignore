@@ -3,3 +3,6 @@ __pycache__
 /logs
 /ckpts
 /.cache
+/config
+/*.egg-info
+/vall_e/version.py
