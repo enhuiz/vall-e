@@ -339,8 +339,6 @@ class Base(nn.Module):
         # Just use all of them as it is more sufficient and we don't need to sample it, or do we?
         self.prom_emb = AdditiveMultiEmbedding(self.n_prom_levels, n_tokens, d_model)
 
-        # Note that, for different levels, I don't use AdaLN for simplicity
-        # Use different embeddings might be enough.
         if self.n_resp_levels:
             self.resp_emb = SelectiveMultiEmbedding(
                 self.n_resp_levels, n_resp_tokens, d_model
