@@ -10,7 +10,7 @@ An unofficial (toy) implementation of [VALL-E](https://valle-demo.github.io/), b
 pip install git+https://github.com/enhuiz/vall-e
 ```
 
-## Data Preparation
+## Usage
 
 1. Put your data into a folder, e.g. `data/your_data`. Audio files should be named with the suffix `.wav` and text files with `.normalized.txt`.
 
