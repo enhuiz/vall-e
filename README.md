@@ -10,6 +10,8 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 pip install git+https://github.com/enhuiz/vall-e
 ```
 
+Note that the code is only tested under Python 3.10.7.
+
 ## Usage
 
 1. Put your data into a folder, e.g. `data/your_data`. Audio files should be named with the suffix `.wav` and text files with `.normalized.txt`.
