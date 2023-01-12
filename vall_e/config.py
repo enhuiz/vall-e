@@ -20,6 +20,9 @@ class Config(ConfigBase):
     p_additional_prompt: float = 0.8
     max_prompts: int = 3
 
+    max_num_val: int = 20
+    max_val_ar_steps: int = 300
+
     token_dim: int = 256
     num_tokens: int = 1024
 

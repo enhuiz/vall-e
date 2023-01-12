@@ -72,7 +72,11 @@ def main():
             batch = to_device(batch, cfg.device)
 
             if cfg.model.startswith("ar"):
-                resp_list = model(text_list=batch["text"], proms_list=batch["proms"])
+                resp_list = model(
+                    text_list=batch["text"],
+                    proms_list=batch["proms"],
+                    max_steps=cfg.max_val_ar_steps,
+                )
                 resps_list = [r.unsqueeze(-1) for r in resp_list]
             elif cfg.model.startswith("nar"):
                 resps_list = model(
@@ -97,6 +101,8 @@ def main():
                 qnt.decode_to_file(ref, ref_path)
                 if len(hyp) > 0:
                     qnt.decode_to_file(hyp, hyp_path)
+
+        qnt.unload_model()
 
         stats = {k: sum(v) / len(v) for k, v in stats.items()}
         stats["global_step"] = engines.global_step

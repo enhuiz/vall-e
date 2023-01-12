@@ -260,7 +260,7 @@ def create_datasets():
     )
 
     val_dataset.interleaved_reorder_(_get_spkr_name)
-    val_dataset.head_(200)
+    val_dataset.head_(cfg.max_num_val)
 
     test_dataset = VALLEDatset(
         test_paths,
@@ -286,17 +286,17 @@ def create_train_val_dataloader():
     _logger.info(f"#samples (val): {len(val_dataset)}.")
     _logger.info(f"#samples (test): {len(test_dataset)}.")
 
-    train200_dataset = copy.deepcopy(train_dataset)
-    train200_dataset.interleaved_reorder_(_get_spkr_name)
-    train200_dataset.head_(200)
-    train200_dataset.training_(False)
-    train200_dl = _create_dl(train200_dataset, training=False)
-    assert isinstance(train200_dl.dataset, VALLEDatset)
+    train_for_val_dataset = copy.deepcopy(train_dataset)
+    train_for_val_dataset.interleaved_reorder_(_get_spkr_name)
+    train_for_val_dataset.head_(cfg.max_num_val)
+    train_for_val_dataset.training_(False)
+    train_for_val_dl = _create_dl(train_for_val_dataset, training=False)
+    assert isinstance(train_for_val_dl.dataset, VALLEDatset)
 
-    return train_dl, train200_dl, val_dl, test_dl
+    return train_dl, train_for_val_dl, val_dl, test_dl
 
 
 if __name__ == "__main__":
-    train_dl, train200_dl, val_dl, test_dl = create_train_val_dataloader()
+    train_dl, train_for_val_dl, val_dl, test_dl = create_train_val_dataloader()
     sample = train_dl.dataset[0]
     print(sample)
