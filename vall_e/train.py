@@ -35,18 +35,20 @@ def main():
     def train_feeder(engines, batch, name):
         model = engines["model"]
 
-        if cfg.model == "ar":
+        if cfg.model.startswith("ar"):
             _ = model(
                 text_list=batch["text"],
                 proms_list=batch["proms"],
                 resp_list=batch["resp"],
             )
-        elif cfg.model == "nar":
+        elif cfg.model.startswith("nar"):
             _ = model(
                 text_list=batch["text"],
                 proms_list=batch["proms"],
                 resps_list=batch["resps"],
             )
+        else:
+            raise NotImplementedError(cfg.model)
 
         losses = model.gather_attribute("loss")
 
@@ -69,10 +71,10 @@ def main():
             batch: dict
             batch = to_device(batch, cfg.device)
 
-            if cfg.model == "ar":
+            if cfg.model.startswith("ar"):
                 resp_list = model(text_list=batch["text"], proms_list=batch["proms"])
                 resps_list = [r.unsqueeze(-1) for r in resp_list]
-            elif cfg.model == "nar":
+            elif cfg.model.startswith("nar"):
                 resps_list = model(
                     text_list=batch["text"],
                     proms_list=batch["proms"],
