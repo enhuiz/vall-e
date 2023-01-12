@@ -1,0 +1,4 @@
+data_dirs: [data/test]
+
+model: ar
+batch_size: 1

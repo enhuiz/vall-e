@@ -2,3 +2,4 @@ __pycache__
 /data
 /logs
 /ckpts
+/.cache

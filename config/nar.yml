@@ -1,0 +1,4 @@
+data_dirs: [data/test]
+
+model: nar
+batch_size: 1
