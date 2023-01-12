@@ -1,4 +1,4 @@
 data_dirs: [data/test]
 
-model: ar
+model: ar-quarter
 batch_size: 1

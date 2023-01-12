@@ -1,0 +1,5 @@
+data_dirs: [data/LibriTTS/train-clean-100/]
+spkr_name_getter: "lambda p: p.parts[-3]"
+
+model: ar-quarter
+batch_size: 8

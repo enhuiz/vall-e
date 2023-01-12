@@ -1,4 +1,4 @@
 data_dirs: [data/test]
 
-model: nar
+model: nar-quarter
 batch_size: 1

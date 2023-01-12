@@ -23,8 +23,8 @@ class Config(ConfigBase):
     num_tokens: int = 1024
 
     nj: int = 8
-    batch_size: int = 128
-    eval_batch_size: int = 512
+    batch_size: int = 32
+    eval_batch_size: int = 32
     warmup_min_lr: float = 1e-6
     warmup_max_lr: float = 2e-4
     dis_warmup_max_lr: float = 4e-4
