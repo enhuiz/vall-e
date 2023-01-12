@@ -1,4 +1,5 @@
 import argparse
+import random
 from functools import cache
 from pathlib import Path
 
@@ -73,9 +74,12 @@ def main():
     args = parser.parse_args()
 
     paths = [*args.folder.rglob(f"*{args.suffix}")]
+    random.shuffle(paths)
 
     for path in tqdm(paths):
         out_path = _replace_file_extension(path, ".qnt.pt")
+        if out_path.exists():
+            continue
         wav, sr = torchaudio.load(path)
         if wav.shape[0] == 2:
             wav = wav[:1]
