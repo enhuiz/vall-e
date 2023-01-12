@@ -40,6 +40,8 @@ def main():
 
     for path in tqdm(paths):
         phone_path = path.with_name(path.stem.split(".")[0] + ".phn.txt")
+        if phone_path.exists():
+            continue
         graphs = _get_graphs(path)
         phones = encode(graphs)
         with open(phone_path, "w") as f:
