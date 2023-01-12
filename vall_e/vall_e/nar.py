@@ -9,7 +9,7 @@ from .base import Base
 
 class NAR(Base):
     @property
-    def n_levels(self):
+    def n_resp_levels(self):
         return 7
 
     @property
@@ -19,6 +19,10 @@ class NAR(Base):
     @property
     def use_stop_token(self):
         return False
+
+    @property
+    def norm_type(self):
+        return "adaln"
 
     def forward(
         self,
@@ -44,68 +48,48 @@ class NAR(Base):
 
         if resps_list is not None:
             levels = {r.shape[-1] for r in resps_list}
-            if any(level != self.n_levels + 1 for level in levels):
+            if any(level != self.n_resp_levels + 1 for level in levels):
                 raise ValueError(
-                    f"resps_list should have exactly {self.n_levels + 1} levels, but got {levels}."
+                    f"resps_list should have exactly {self.n_resp_levels + 1} levels, but got {levels}."
                 )
 
-        if resp_list is not None:
+        device = text_list[0].device
+
+        if resp_list is None:
+            assert resps_list is not None
+
+            quant_levels = torch.randint(0, self.n_resp_levels, (len(resps_list),))
+
+            curr_resp_list = [o[..., l] for o, l in zip(resps_list, quant_levels)]
+            next_resp_list = [o[..., l + 1] for o, l in zip(resps_list, quant_levels)]
+
+            quant_levels = quant_levels.to(device=device)
+
+            _ = super().forward(
+                text_list,
+                proms_list,
+                curr_resp_list,
+                next_resp_list,
+                return_all_resp=True,
+                shift_targ_list=False,
+                quant_levels=quant_levels,
+            )
+
+            # Yes, just nothing as we are training
+            hyp_resp_lists = []
+        else:
             hyp_resp_lists = [resp_list]
-            for i in range(self.n_levels):
+            for level in range(self.n_resp_levels):
+                quant_levels = torch.full((len(text_list),), level, device=device)
                 hyp_resp_list = super().forward(
                     text_list,
                     proms_list,
                     hyp_resp_lists[-1],
                     return_all_resp=True,
                     shift_targ_list=False,
-                    quant_level=i,
+                    quant_levels=quant_levels,
                 )
                 hyp_resp_lists.append(hyp_resp_list)
-        else:
-            assert resps_list is not None
-
-            # I noticed that VALL-E randomly sample a layer,
-            # which will be more memory efficient, let's do it.
-            # For simplicity, do it on per batch level instead of per sample level
-            # does that matter?
-
-            # Old code:
-            # loss = {}
-            # resp_list = [o[..., 0] for o in resps_list]
-            # hyp_resp_lists = [resp_list]
-            # for i in range(self.n_levels):
-            #     resp_list = [o[..., 0] for o in resps_list]
-            #     next_resp_list = [o[..., i + 1] for o in resps_list]
-            #     hyp_resp_list = super().forward(
-            #         text_list,
-            #         proms_list,
-            #         resp_list,
-            #         next_resp_list,
-            #         return_all_resp=True,
-            #         shift_targ_list=False,
-            #         quant_level=i,
-            #     )
-            #     hyp_resp_lists.append(hyp_resp_list)
-            #     loss |= {f"l{i}": self.loss}
-            #     del self.loss
-            # self.loss = loss
-
-            quant_level = random.randint(0, self.n_levels - 1)
-            cur_resp_list = [o[..., quant_level] for o in resps_list]
-            next_resp_list = [o[..., quant_level + 1] for o in resps_list]
-
-            _ = super().forward(
-                text_list,
-                proms_list,
-                cur_resp_list,
-                next_resp_list,
-                return_all_resp=True,
-                shift_targ_list=False,
-                quant_level=quant_level,
-            )
-
-            # Yes, just nothing as we are training
-            hyp_resp_lists = []
 
         hyp_resps_list = [
             *map(lambda ts: torch.stack(ts, dim=-1), zip(*hyp_resp_lists))

@@ -8,7 +8,7 @@ from .base import Base
 
 class AR(Base):
     @property
-    def n_levels(self):
+    def n_resp_levels(self):
         return 1
 
     @property
@@ -18,6 +18,10 @@ class AR(Base):
     @property
     def use_stop_token(self):
         return True
+
+    @property
+    def norm_type(self):
+        return "ln"
 
     def _prune(self, l: Tensor):
         indices = (l == self.stop_token).nonzero()
@@ -38,7 +42,7 @@ class AR(Base):
                 proms_list,
                 resp_list,
                 resp_list,
-                quant_level=0,
+                quant_levels=None,
                 shift_targ_list=True,
                 return_all_resp=False,
             )
@@ -55,14 +59,13 @@ class AR(Base):
         resp_list: list[Tensor] = [
             torch.zeros(0, device=device).long() for _ in text_list
         ]
-        stopped = [False] * len(text_list)
+        stopped = torch.zeros(len(text_list), device=device).bool()
         for _ in trange(max_steps):
             r = super().forward(text_list, proms_list, resp_list)
+            stopped |= r == self.stop_token
             for i, ri in enumerate(r):
-                if ri.item() == self.stop_token:
-                    stopped[i] = True
                 resp_list[i] = torch.cat([resp_list[i], ri[None]])
-            if all(stopped):
+            if stopped.all().item():
                 break
         pruned = [self._prune(r) for r in resp_list]
         return pruned

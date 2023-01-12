@@ -42,4 +42,6 @@ python -m vall_e.train yaml=config/your_data/ar_or_nar.yml
 - [x] Audio decoding from tokens
 - [x] NAR model for the rest quantizers
 - [x] Trainers for both models
+- [x] Implement AdaLN for NAR model.
+- [x] Sample-wise quantization level sampling for NAR training.
 - [ ] Pre-trained checkpoint and demos on LibriTTS
