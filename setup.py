@@ -32,7 +32,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="vall-e",
-    python_requires=">=3.9.0",
+    python_requires=">=3.10.0",
     version=write_version("0.0.1"),
     description="An unofficial toy implementation of the audio LM VALL-E",
     author="enhuiz",
