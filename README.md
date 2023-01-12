@@ -36,9 +36,7 @@ python -m vall_e.emb.qnt data/your_data
 python -m vall_e.emb.g2p data/your_data
 ```
 
-4. Customize your configuration by creating `config/your_data/ar.yml` and `config/your_data/nar.yml`.
-
-- Refer to the example configs in `config/test` and `vall_e/config.py` for details.
+4. Customize your configuration by creating `config/your_data/ar.yml` and `config/your_data/nar.yml`. Refer to the example configs in `config/test` and `vall_e/config.py` for details.
 
 5. Train the AR or NAR model using the following scripts:
 
