@@ -1,3 +1,5 @@
+<img src="./vall-e.png" width="450px"></img>
+
 # VALL-E
 
 An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/), based on the [EnCodec](https://github.com/facebookresearch/encodec) tokenizer.
