@@ -58,5 +58,5 @@ setup(
         "torchaudio>=0.13.0",
         "tqdm>=4.64.1",
     ],
-    url="https://github.com/enhuiz/VALL_E",
+    url="https://github.com/enhuiz/vall-e",
 )
