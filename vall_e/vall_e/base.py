@@ -165,6 +165,8 @@ class PrenormResidual(nn.Module):
         elif norm_type == "adaln":
             assert n_levels is not None
             self.norm = AdaLN(d_model, n_levels)
+        else:
+            raise NotImplementedError(norm_type)
         self.dropout = nn.Dropout(p_dropout)
 
     def forward(self, x, m, l):
