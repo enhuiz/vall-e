@@ -178,10 +178,28 @@ class Block(nn.Sequential):
 
 
 class Embedding(nn.Embedding):
-    def forward(self, x: list[Tensor]) -> list[Tensor]:
-        if len(x) == 0:
+    def forward(self, x_list: list[Tensor]) -> list[Tensor]:
+        if len(x_list) == 0:
             return []
-        return super().forward(torch.cat(x)).split([*map(len, x)])
+        return super().forward(torch.cat(x_list)).split([*map(len, x_list)])
+
+
+class MultiEmbedding(nn.Module):
+    def __init__(self, num_embeddings, embedding_dim, n_levels):
+        super().__init__()
+        self.n_levels = n_levels
+        self.num_embeddings = num_embeddings
+        self.emb = nn.Embedding(n_levels * num_embeddings, embedding_dim)
+
+    def forward(self, x_list: list[Tensor]) -> list[Tensor]:
+        if len(x_list) == 0:
+            return []
+        x = torch.cat(x_list)
+        assert x.shape[1] == self.n_levels
+        w = rearrange(self.emb.weight, "(q k) d -> q k d", q=self.n_levels)
+        x = F.one_hot(x, num_classes=self.num_embeddings).float()  # n q -> n q k
+        x = einsum("q k d, n q k -> n d", w, x)
+        return x.split([*map(len, x_list)])
 
 
 def _join(x: tuple[Tensor], sep: Tensor):
@@ -216,6 +234,8 @@ class Base(nn.Module):
         n_heads: int = 8,
         n_layers: int = 12,
         p_dropout: float = 0.1,
+        n_prom_levels: int = 8,
+        resp_loss_only: bool = False,
     ):
         super().__init__()
         self.n_tokens = n_tokens
@@ -227,7 +247,10 @@ class Base(nn.Module):
         n_resp_tokens = n_tokens + n_stop_tokens
 
         self.text_emb = Embedding(n_tokens, d_model)
-        self.prom_emb = Embedding(n_tokens, d_model)
+
+        # It's not clear whether the whole prom are used or only the first level quantization
+        # Just use all of them as it is more sufficient and we don't need to sample it, or do we?
+        self.prom_emb = MultiEmbedding(n_tokens, d_model, n_levels=n_prom_levels)
 
         # +1 to include the stop token
         self.resp_embs = nn.ModuleList(
@@ -242,6 +265,8 @@ class Base(nn.Module):
         self.blocks = nn.ModuleList(blocks)
 
         self.classifier = nn.Linear(d_model, n_resp_tokens)
+
+        self.resp_loss_only = resp_loss_only
 
     @property
     def stop_token(self):
@@ -265,7 +290,7 @@ class Base(nn.Module):
     def forward(
         self,
         text_list: list[Tensor],
-        prom_list: list[Tensor],
+        proms_list: list[Tensor],
         resp_list: list[Tensor],
         targ_list: list[Tensor] | None = None,
         quant_level: int = 0,
@@ -278,7 +303,7 @@ class Base(nn.Module):
     def forward(
         self,
         text_list: list[Tensor],
-        prom_list: list[Tensor],
+        proms_list: list[Tensor],
         resp_list: list[Tensor],
         targ_list: list[Tensor] | None = None,
         quant_level: int = 0,
@@ -290,7 +315,7 @@ class Base(nn.Module):
     def forward(
         self,
         text_list: list[Tensor],
-        prom_list: list[Tensor],
+        proms_list: list[Tensor],
         resp_list: list[Tensor],
         targ_list: list[Tensor] | None = None,
         quant_level: int = 0,
@@ -300,7 +325,7 @@ class Base(nn.Module):
         """
         Args:
             text_list: [t] * b
-            prom_list: [t'] * b
+            proms_list: [t' k] * b
             resp_list: [t''] * b, one quantization level only
             targ_list: [t''] * b, one quantization level only, when given, loss will be computed
             quant_level: specify which quant_level to feed forward, used in NAR mode.
@@ -311,7 +336,7 @@ class Base(nn.Module):
         """
         x_list = self._samplewise_merge_tensors(
             self.text_emb(text_list),
-            self.prom_emb(prom_list),
+            self.prom_emb(proms_list),
             self.resp_embs[quant_level](resp_list),
             sep=self.sep,
         )
@@ -334,14 +359,21 @@ class Base(nn.Module):
             device = h.device
 
             ignore_sep = torch.tensor(self.ignore_index, device=device)
+
+            # Predict the first level prom
+            prom_list = [t[..., 0] for t in proms_list]
             text_prom_list = self._samplewise_merge_tensors(
                 text_list, prom_list, sep=ignore_sep
             )
 
             # Make every token earlier as it is future that is unknown
+            # If we don't want compute loss, set all to ignored
             for i in range(len(text_prom_list)):
-                text_prom_list[i] = text_prom_list[i].roll(-1, dims=0)
-                text_prom_list[i][-1] = self.ignore_index
+                if self.resp_loss_only:
+                    text_prom_list[i][:] = self.ignore_index
+                else:
+                    text_prom_list[i] = text_prom_list[i].roll(-1, dims=0)
+                    text_prom_list[i][-1] = self.ignore_index
 
             if shift_targ_list:
                 # Also make target earlier if in autoregressive mode

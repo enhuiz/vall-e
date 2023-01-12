@@ -21,7 +21,7 @@ class NAR(Base):
     def forward(
         self,
         text_list: list[Tensor],
-        prom_list: list[Tensor],
+        proms_list: list[Tensor],
         *,
         resp_list: list[Tensor] | None = None,
         resps_list: list[Tensor] | None = None,
@@ -29,7 +29,7 @@ class NAR(Base):
         """
         Args:
             text_list: [t] * b
-            prom_list: [t'] * b
+            proms_list: [t' k] * b
             resp_list: [t'] * b, quants at level 0.
             resps_list: [t''] * b, 8 quantization levels for training.
         Returns:
@@ -52,7 +52,7 @@ class NAR(Base):
             for i in range(self.n_levels):
                 hyp_resp_list = super().forward(
                     text_list,
-                    prom_list,
+                    proms_list,
                     hyp_resp_lists[-1],
                     return_all_resp=True,
                     shift_targ_list=False,
@@ -70,7 +70,7 @@ class NAR(Base):
                 next_resp_list = [o[..., i + 1] for o in resps_list]
                 hyp_resp_list = super().forward(
                     text_list,
-                    prom_list,
+                    proms_list,
                     resp_list,
                     next_resp_list,
                     return_all_resp=True,
@@ -90,7 +90,10 @@ class NAR(Base):
 
 
 def example_usage():
+    from functools import partial
+
     import soundfile
+    from einops import repeat
 
     from ..emb.qnt import decode
     from ..utils import gather_attribute
@@ -107,9 +110,10 @@ def example_usage():
         torch.tensor([2, 3], device=device),
     ]
 
-    prom_list = [
-        torch.tensor([1, 2, 3], device=device),
-        torch.tensor([2, 3], device=device),
+    x8 = partial(repeat, pattern="t -> t q", q=8)
+    proms_list = [
+        x8(torch.tensor([1, 2, 3], device=device)),
+        x8(torch.tensor([2, 3], device=device)),
     ]
 
     resp_list = [
@@ -118,13 +122,11 @@ def example_usage():
     ]
 
     resps_list = [
-        torch.tensor([1, 2, 3], device=device)
-        .unsqueeze(-1)
-        .repeat_interleave(8, dim=-1),
+        x8(torch.tensor([1, 2, 3], device=device)),
         resps.t().to(device),
     ]
 
-    out = model(text_list, prom_list, resp_list=resp_list)
+    out = model(text_list, proms_list, resp_list=resp_list)
     codes = rearrange(out[1], "t k -> 1 k t")
     print(codes)
     wavs, sr = decode(codes)
@@ -134,7 +136,7 @@ def example_usage():
 
     for i in range(100):
         optimizer.zero_grad()
-        _ = model(text_list, prom_list, resps_list=resps_list)
+        _ = model(text_list, proms_list, resps_list=resps_list)
 
         losses = gather_attribute(model, "loss")
         loss = sum(losses.values())
@@ -146,7 +148,7 @@ def example_usage():
             stats["loss"] = loss.item()
             print(f"iter={i}, {stats}.")
 
-    out = model(text_list, prom_list, resp_list=resp_list)
+    out = model(text_list, proms_list, resp_list=resp_list)
     codes = rearrange(out[1], "t k -> 1 k t")
     wavs, sr = decode(codes)
     soundfile.write("data/test/test.nar.recon.wav", wavs.cpu()[0, 0], sr)

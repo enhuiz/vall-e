@@ -28,12 +28,12 @@ class AR(Base):
     def forward(
         self,
         text_list: list[Tensor],
-        prom_list: list[Tensor],
+        proms_list: list[Tensor],
         resp_list: list[Tensor],
     ):
         return super().forward(
             text_list,
-            prom_list,
+            proms_list,
             resp_list,
             resp_list,
             quant_level=0,
@@ -44,7 +44,7 @@ class AR(Base):
     def generate(
         self,
         text_list: list[Tensor],
-        prom_list: list[Tensor],
+        proms_list: list[Tensor],
         max_steps: int = 1000,
     ):
         device = text_list[0].device
@@ -53,7 +53,7 @@ class AR(Base):
         ]
         stopped = [False] * len(text_list)
         for _ in trange(max_steps):
-            r = super().forward(text_list, prom_list, resp_list)
+            r = super().forward(text_list, proms_list, resp_list)
             for i, ri in enumerate(r):
                 if ri.item() == self.stop_token:
                     stopped[i] = True
@@ -65,7 +65,10 @@ class AR(Base):
 
 
 def example_usage():
+    from functools import partial
+
     import soundfile
+    from einops import repeat
 
     device = "cuda"
 
@@ -79,9 +82,10 @@ def example_usage():
         torch.tensor([2, 3], device=device),
     ]
 
-    prom_list = [
-        torch.tensor([1, 2, 3], device=device),
-        torch.tensor([2, 3], device=device),
+    x8 = partial(repeat, pattern="t -> t q", q=8)
+    proms_list = [
+        x8(torch.tensor([1, 2, 3], device=device)),
+        x8(torch.tensor([2, 3], device=device)),
     ]
 
     resp_list = [
@@ -91,7 +95,7 @@ def example_usage():
 
     out = model.generate(
         text_list,
-        prom_list,
+        proms_list,
         max_steps=200,
     )
 
@@ -101,7 +105,7 @@ def example_usage():
 
     for i in range(100):
         optimizer.zero_grad()
-        _ = model(text_list, prom_list, resp_list)
+        _ = model(text_list, proms_list, resp_list)
 
         losses = model.loss
         sum(losses.values()).backward()
@@ -110,7 +114,7 @@ def example_usage():
         if i % 20 == 0:
             print(f"iter={i}, {losses}.")
 
-    out = model.generate(text_list, prom_list, max_steps=200)
+    out = model.generate(text_list, proms_list, max_steps=200)
 
     print(qnt)
     print(out)
