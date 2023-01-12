@@ -37,11 +37,12 @@ class Config(ConfigBase):
     eval_every: int = 2_000
     save_ckpt_every: int = 10_000
 
-    model: str = "ar"
-    d_model: int = 512
-    n_heads: int = 8
-    n_layers: int = 12
-    p_dropout: float = 0.1
+    model: str = "ar-quarter"
+    spkr_name_getter: str = "lambda p: p.parts[-2]"
+
+    @cached_property
+    def get_spkr(self):
+        return eval(self.spkr_name_getter)
 
     @property
     def ds_cfg(self):

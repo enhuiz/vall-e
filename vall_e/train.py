@@ -9,30 +9,13 @@ from .config import cfg
 from .data import create_train_val_dataloader
 from .emb import qnt
 from .utils import setup_logging, to_device, trainer
-from .vall_e import AR, NAR
+from .vall_e import get_model
 
 _logger = logging.getLogger(__name__)
 
 
 def load_engines():
-    if cfg.model.lower() == "ar":
-        model = AR(
-            cfg.num_tokens,
-            cfg.d_model,
-            cfg.n_heads,
-            cfg.n_layers,
-            cfg.p_dropout,
-        )
-    elif cfg.model.lower() == "nar":
-        model = NAR(
-            cfg.num_tokens,
-            cfg.d_model,
-            cfg.n_heads,
-            cfg.n_layers,
-            cfg.p_dropout,
-        )
-    else:
-        raise NotImplementedError(cfg.model)
+    model = get_model(cfg.model)
 
     engines = dict(
         model=trainer.Engine(
