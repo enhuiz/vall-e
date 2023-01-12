@@ -1,3 +1,5 @@
+import random
+
 import torch
 from einops import rearrange
 from torch import Tensor
@@ -62,25 +64,48 @@ class NAR(Base):
         else:
             assert resps_list is not None
 
-            loss = {}
-            resp_list = [o[..., 0] for o in resps_list]
-            hyp_resp_lists = [resp_list]
-            for i in range(self.n_levels):
-                resp_list = [o[..., 0] for o in resps_list]
-                next_resp_list = [o[..., i + 1] for o in resps_list]
-                hyp_resp_list = super().forward(
-                    text_list,
-                    proms_list,
-                    resp_list,
-                    next_resp_list,
-                    return_all_resp=True,
-                    shift_targ_list=False,
-                    quant_level=i,
-                )
-                hyp_resp_lists.append(hyp_resp_list)
-                loss |= {f"l{i}": self.loss}
-                del self.loss
-            self.loss = loss
+            # I noticed that VALL-E randomly sample a layer,
+            # which will be more memory efficient, let's do it.
+            # For simplicity, do it on per batch level instead of per sample level
+            # does that matter?
+
+            # Old code:
+            # loss = {}
+            # resp_list = [o[..., 0] for o in resps_list]
+            # hyp_resp_lists = [resp_list]
+            # for i in range(self.n_levels):
+            #     resp_list = [o[..., 0] for o in resps_list]
+            #     next_resp_list = [o[..., i + 1] for o in resps_list]
+            #     hyp_resp_list = super().forward(
+            #         text_list,
+            #         proms_list,
+            #         resp_list,
+            #         next_resp_list,
+            #         return_all_resp=True,
+            #         shift_targ_list=False,
+            #         quant_level=i,
+            #     )
+            #     hyp_resp_lists.append(hyp_resp_list)
+            #     loss |= {f"l{i}": self.loss}
+            #     del self.loss
+            # self.loss = loss
+
+            quant_level = random.randint(0, self.n_levels - 1)
+            cur_resp_list = [o[..., quant_level] for o in resps_list]
+            next_resp_list = [o[..., quant_level + 1] for o in resps_list]
+
+            _ = super().forward(
+                text_list,
+                proms_list,
+                cur_resp_list,
+                next_resp_list,
+                return_all_resp=True,
+                shift_targ_list=False,
+                quant_level=quant_level,
+            )
+
+            # Yes, just nothing as we are training
+            hyp_resp_lists = []
 
         hyp_resps_list = [
             *map(lambda ts: torch.stack(ts, dim=-1), zip(*hyp_resp_lists))

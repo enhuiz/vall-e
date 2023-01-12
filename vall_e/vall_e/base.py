@@ -1,5 +1,4 @@
 import math
-from dataclasses import dataclass
 from functools import partial
 from typing import Literal, overload
 
@@ -9,6 +8,7 @@ from einops import rearrange
 from torch import Tensor, einsum, nn
 from torch.distributions import Categorical
 from torch.nn.utils.rnn import pad_sequence
+from torch.utils.checkpoint import checkpoint
 
 
 def _create_mask(l, device):
@@ -172,7 +172,11 @@ class Block(nn.Sequential):
             x: (b t c)
             m: (b t 1)
         """
-        x = self.attn(x, m)
+        poor_in_vram = True
+        if x.requires_grad and poor_in_vram:
+            x = checkpoint(self.attn, x, m)
+        else:
+            x = self.attn(x, m)
         x = self.ffn(x, m)
         return x
 
@@ -253,6 +257,8 @@ class Base(nn.Module):
         self.prom_emb = MultiEmbedding(n_tokens, d_model, n_levels=n_prom_levels)
 
         # +1 to include the stop token
+        # Note that, for different levels, I don't use AdaLN for simplicity
+        # Use different embeddings might be enough.
         self.resp_embs = nn.ModuleList(
             [Embedding(n_resp_tokens, d_model) for _ in range(n_levels)]
         )
