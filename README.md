@@ -7,7 +7,7 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/enhuiz)
 
 
-## Install
+## Installation
 
 Note that the code is only tested under `Python 3.10.7`.
 
