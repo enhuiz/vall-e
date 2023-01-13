@@ -6,21 +6,23 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/enhuiz)
 
-## Install
 
-### Install with pip
+## Installation
 
-```
+Note that the code is only tested under `Python 3.10.7`.
+
+### Install with `pip` (remote)
+```bash
 pip install git+https://github.com/enhuiz/vall-e
 ```
 
-### Clone
-
-```
+### Install with `pip` (locally)
+```bash
 git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
+cd vall-e
+pip install --editable .
 ```
 
-Note that the code is only tested under `Python 3.10.7`.
 
 ## Usage
 
@@ -29,13 +31,13 @@ Note that the code is only tested under `Python 3.10.7`.
 2. Quantize the data:
 
 ```
-python -m vall_e.emb.qnt data/your_data
+valle-quantize data/your_data
 ```
 
 3. Generate phonemes based on the text:
 
 ```
-python -m vall_e.emb.g2p data/your_data
+valle-phonemes data/your_data
 ```
 
 4. Customize your configuration by creating `config/your_data/ar.yml` and `config/your_data/nar.yml`. Refer to the example configs in `config/test` and `vall_e/config.py` for details. You may choose different model presets, check `vall_e/vall_e/__init__.py`.
@@ -43,7 +45,7 @@ python -m vall_e.emb.g2p data/your_data
 5. Train the AR or NAR model using the following scripts:
 
 ```
-python -m vall_e.train yaml=config/your_data/ar_or_nar.yml
+valle-train yaml=config/your_data/ar_or_nar.yml
 ```
 
 ## TODO
