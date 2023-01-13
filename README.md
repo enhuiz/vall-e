@@ -8,11 +8,19 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 
 ## Install
 
+### Install with pip
+
 ```
 pip install git+https://github.com/enhuiz/vall-e
 ```
 
-Note that the code is only tested under Python 3.10.7.
+### Clone
+
+```
+git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
+```
+
+Note that the code is only tested under `Python 3.10.7`.
 
 ## Usage
 
