@@ -6,21 +6,23 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/enhuiz)
 
+
 ## Install
 
-### Install with pip
+Note that the code is only tested under `Python 3.10.7`.
 
+### Install with `pip` (remote)
+```bash
+pip install git+https://github.com/enhuiz/vall-e
 ```
+
+### Install with `pip` (locally)
+```bash
+git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
+cd vall-e
 pip install --editable .
 ```
 
-### Clone
-
-```
-git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
-```
-
-Note that the code is only tested under `Python 3.10.7`.
 
 ## Usage
 
