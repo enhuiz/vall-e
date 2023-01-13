@@ -1,0 +1,48 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [
+  "hatchling >= 1.11.0",
+  "pip >= 22.0.0"
+]
+
+[project.scripts]
+valle-quantize = "vall_e.emb.qnt:main"
+valle-phonemes = "vall_e.emb.g2p:main"
+valle-train    = "vall_e.train:main"
+
+
+[project]
+name            = "vall-e"
+version         = "0.0.1"
+description     = "An unofficial toy implementation of the audio LM VALL-E."
+readme          = "README.md"
+license         = "MIT"
+requires-python = ">=3.10"
+
+authors = [
+  { name = "Zhe Niu", email = "niuzhe.nz@outlook.com" },
+]
+
+
+dependencies = [
+  "coloredlogs==15.0.1",
+  "deepspeed==0.7.7",
+  "diskcache==5.4.0",
+  "einops==0.6.0",
+  "encodec==0.1.1",
+  "g2p_en==2.1.0",
+  "humanize==4.4.0",
+  "matplotlib==3.6.0",
+  "numpy==1.23.3",
+  "omegaconf==2.2.3",
+  "openTSNE==0.6.2",
+  "pandas==1.5.0",
+  "soundfile==0.11.0",
+  "torch==1.13.0",
+  "torchaudio==0.13.0",
+  "tqdm==4.64.1",
+]
+
+
+[project.urls]
+GitHub = "https://github.com/enhuiz/vall-e"
