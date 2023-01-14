@@ -31,6 +31,7 @@ def list_to_tensor(x_list: list[Tensor], pattern="t b c -> b t c"):
     m = _create_mask(l, x_list[0].device)
     m = m.t().unsqueeze(-1)  # (t b 1)
     m = rearrange(m, pattern)
+    m = m.to(x)
     return x, m
 
 
@@ -256,7 +257,7 @@ class AdditiveMultiEmbedding(nn.Embedding):
         x = torch.cat(x_list)
         assert x.shape[1] == self.n_levels
         w = rearrange(self.weight, "(q k) d -> q k d", q=self.n_levels)
-        x = F.one_hot(x, num_classes=self.n_tokens).float()  # n q -> n q k
+        x = F.one_hot(x, num_classes=self.n_tokens).to(w)  # n q -> n q k
         x = einsum("q k d, n q k -> n d", w, x)
         x_list = x.split([*map(len, x_list)])
         return x_list
@@ -285,7 +286,7 @@ class SelectiveMultiEmbedding(nn.Embedding):
             w = repeat(self.weight[0], "d -> b d", b=len(x))
 
         w = rearrange(w, "b (k d) -> b k d", k=self.n_tokens_per_level)
-        x = F.one_hot(x, num_classes=self.n_tokens_per_level).float()  # b t k
+        x = F.one_hot(x, num_classes=self.n_tokens_per_level).to(w)  # b t k
         x = einsum("b k d, b t k -> b t d", w, x)
 
         x_list = [xi[:li] for xi, li in zip(x, map(len, x_list))]
