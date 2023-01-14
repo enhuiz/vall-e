@@ -90,14 +90,20 @@ class VALLEDatset(Dataset):
         self._head = None
         self.min_phones = min_phones
         self.max_phones = max_phones
+
         self.paths = [
             path for path in paths if _validate(path, self.min_phones, self.max_phones)
         ]
+
         self.spkr_symmap = spkr_symmap or self._get_spkr_symmap()
         self.phone_symmap = phone_symmap or self._get_phone_symmap()
         self.training = training
 
         self.paths_by_spkr_name = self._get_paths_by_spkr_name(extra_paths_by_spkr_name)
+
+        self.paths = [
+            p for p in self.paths if len(self.paths_by_spkr_name[_get_spkr_name(p)]) > 1
+        ]
 
         if training:
             self.sampler = Sampler(self.paths, [_get_spkr_name])
@@ -128,18 +134,16 @@ class VALLEDatset(Dataset):
     def _get_spkr_symmap(self):
         return {s: i for i, s in enumerate(self.spkrs)}
 
-    def sample_prompts(self, spkr_name, better_not):
+    def sample_prompts(self, spkr_name, ignore):
         prom_list = []
 
-        choices = set(self.paths_by_spkr_name[spkr_name]) - {better_not}
+        choices = set(self.paths_by_spkr_name[spkr_name]) - {ignore}
         choices = [*choices]
 
         if len(choices) == 0:
-            _logger.info(
-                f"Failed to find another different utterance for {spkr_name}, "
-                "using the same audio as prompt."
+            raise ValueError(
+                f"Failed to find another different utterance for {spkr_name}."
             )
-            choices = [better_not]
 
         for _ in range(cfg.max_prompts):
             path = random.choice(choices)
@@ -160,7 +164,7 @@ class VALLEDatset(Dataset):
 
         spkr_name = _get_spkr_name(path)
         text = torch.tensor([*map(self.phone_symmap.get, _get_phones(path))])
-        proms = self.sample_prompts(spkr_name, better_not=path)
+        proms = self.sample_prompts(spkr_name, ignore=path)
         resps = _load_quants(path)
         resp = resps[..., 0]
 
