@@ -56,6 +56,10 @@ python -m vall_e.train yaml=config/your_data/ar_or_nar.yml
 - [x] Sample-wise quantization level sampling for NAR training.
 - [ ] Pre-trained checkpoint and demos on LibriTTS
 
+## Notice
+
+- [EnCodec](https://github.com/facebookresearch/encodec) is licensed under CC-BY-NC 4.0. If you use the code to generate audio quantization or perform decoding, it is important to adhere to the terms of their license.
+
 ## Citations
 
 ```bibtex
