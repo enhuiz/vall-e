@@ -8,7 +8,11 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 
 ## Install
 
-### Install with pip
+### Requirements
+
+Since the trainer is based on [DeepSpeed](https://github.com/microsoft/DeepSpeed.git), you will need to have a GPU that DeepSpeed has developed and tested against, as well as a CUDA or ROCm compiler pre-installed to install this package.
+
+### Install
 
 ```
 pip install git+https://github.com/enhuiz/vall-e
