@@ -23,6 +23,10 @@ class AR(Base):
     def norm_type(self):
         return "ln"
 
+    @property
+    def resp_loss_only(self):
+        return False
+
     def _prune(self, l: Tensor):
         indices = (l == self.stop_token).nonzero()
         if len(indices) == 0:

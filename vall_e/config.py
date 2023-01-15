@@ -45,6 +45,7 @@ class Config(ConfigBase):
     max_phones: int = 50
 
     use_fp16: bool = True
+    gradient_accumulation_steps: int = 1
 
     @cached_property
     def get_spkr(self):
@@ -60,7 +61,7 @@ class Config(ConfigBase):
     def ds_cfg(self):
         return {
             "train_micro_batch_size_per_gpu": self.batch_size,
-            "gradient_accumulation_steps": 1,
+            "gradient_accumulation_steps": self.gradient_accumulation_steps,
             "optimizer": {
                 "type": "Adam",
                 "lr": self.warmup_min_lr,

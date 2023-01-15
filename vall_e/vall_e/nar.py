@@ -22,6 +22,10 @@ class NAR(Base):
     def norm_type(self):
         return "adaln"
 
+    @property
+    def resp_loss_only(self):
+        return True
+
     def forward(
         self,
         text_list: list[Tensor],

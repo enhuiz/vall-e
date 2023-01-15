@@ -327,6 +327,10 @@ class Base(nn.Module):
     def n_prom_levels(self) -> int:
         return 8
 
+    @property
+    def resp_loss_only(self):
+        raise NotImplementedError
+
     def __init__(
         self,
         n_tokens: int,
@@ -334,7 +338,6 @@ class Base(nn.Module):
         n_heads: int = 8,
         n_layers: int = 12,
         p_dropout: float = 0.1,
-        resp_loss_only: bool = False,
     ):
         super().__init__()
         self.n_tokens = n_tokens
@@ -375,8 +378,6 @@ class Base(nn.Module):
         self.blocks = nn.ModuleList(blocks)
 
         self.classifier = nn.Linear(d_model, n_resp_tokens)
-
-        self.resp_loss_only = resp_loss_only
 
     @property
     def stop_token(self):
@@ -431,6 +432,7 @@ class Base(nn.Module):
         quant_levels: Tensor | None = None,
         shift_targ_list: bool = False,
         return_all_resp: bool = False,
+        sampling_temperature: float = 0.2,
     ):
         """
         Args:
@@ -441,6 +443,7 @@ class Base(nn.Module):
             quant_levels: specify which quant_levels to feed forward, used in NAR mode.
             shift_targ_list: whether to shift target list when computing loss. True if AR.
             return_all_resp: True if NAR.
+            sampling_temperature: a lower temperature makes the result more robust but less diverse.
         Returns:
             y: sampled tokens
         """
@@ -470,8 +473,11 @@ class Base(nn.Module):
 
             ignore_sep = torch.tensor(self.ignore_index, device=device)
 
-            # Predict the first level prom
-            prom_list = [t[..., 0] for t in proms_list]
+            # Ignore prom in the target
+            prom_list = [
+                torch.full_like(t[..., 0], self.ignore_index) for t in proms_list
+            ]
+
             text_prom_list = self._samplewise_merge_tensors(
                 text_list, prom_list, sep=ignore_sep
             )
@@ -506,9 +512,11 @@ class Base(nn.Module):
 
         if return_all_resp:
             logits = [hi[-li:] for hi, li in zip(h_list, map(len, resp_list))]
-            ret = [Categorical(logits=hi).sample() for hi in logits]
+            ret = [
+                Categorical(logits=hi / sampling_temperature).sample() for hi in logits
+            ]
         else:
             logits = torch.stack([hi[-1] for hi in h_list])
-            ret = Categorical(logits=logits).sample()
+            ret = Categorical(logits=logits / sampling_temperature).sample()
 
         return ret
