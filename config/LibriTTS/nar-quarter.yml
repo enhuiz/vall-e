@@ -1,7 +1,6 @@
 data_dirs: [data/LibriTTS/]
 spkr_name_getter: "lambda p: p.parts[-3]"
 
-model: ar
-batch_size: 24
-eval_batch_size: 24
-eval_every: 10_000
+model: nar-quarter
+batch_size: 48
+eval_batch_size: 48

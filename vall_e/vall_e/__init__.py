@@ -27,14 +27,15 @@ def get_model(name):
             n_heads=8,
             n_layers=12,
         )
-    elif "-official" in name:
+    else:
+        if name not in ["ar", "nar"]:
+            raise NotImplementedError(name)
+
         model = Model(
             cfg.num_tokens,
             d_model=1024,
             n_heads=16,
             n_layers=12,
         )
-    else:
-        raise NotImplementedError(name)
 
     return model

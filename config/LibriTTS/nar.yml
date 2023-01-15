@@ -1,6 +1,7 @@
-data_dirs: [data/LibriTTS/train-clean-100/]
+data_dirs: [data/LibriTTS/]
 spkr_name_getter: "lambda p: p.parts[-3]"
 
-model: nar-quarter
-batch_size: 8
-eval_batch_size: 8
+model: nar
+batch_size: 24
+eval_batch_size: 24
+eval_every: 1_000
