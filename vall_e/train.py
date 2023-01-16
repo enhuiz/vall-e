@@ -83,7 +83,7 @@ def main():
                 resps_list = model(
                     text_list=batch["text"],
                     proms_list=batch["proms"],
-                    resp_list=batch["resp"],
+                    resps_list=[r.unsqueeze(-1) for r in batch["resp"]],
                     sampling_temperature=cfg.sampling_temperature,
                 )
             else:
