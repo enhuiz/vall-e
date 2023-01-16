@@ -407,6 +407,7 @@ class Base(nn.Module):
         quant_levels: Tensor | None = None,
         shift_targ_list: bool = False,
         return_all_resp: Literal[False] = False,
+        sampling_temperature: float = 1.0,
     ) -> Tensor:
         ...
 
@@ -420,6 +421,7 @@ class Base(nn.Module):
         quant_levels: Tensor | None = None,
         shift_targ_list: bool = False,
         return_all_resp: Literal[True] = True,
+        sampling_temperature: float = 1.0,
     ) -> list[Tensor]:
         ...
 
@@ -432,7 +434,7 @@ class Base(nn.Module):
         quant_levels: Tensor | None = None,
         shift_targ_list: bool = False,
         return_all_resp: bool = False,
-        sampling_temperature: float = 0.2,
+        sampling_temperature: float = 1.0,
     ):
         """
         Args:

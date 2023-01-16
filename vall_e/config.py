@@ -46,6 +46,7 @@ class Config(ConfigBase):
 
     use_fp16: bool = True
     gradient_accumulation_steps: int = 1
+    sampling_temperature: float = 1.0
 
     @cached_property
     def get_spkr(self):

@@ -33,6 +33,7 @@ class NAR(Base):
         *,
         resp_list: list[Tensor] | None = None,
         resps_list: list[Tensor] | None = None,
+        sampling_temperature: float = 1.0,
     ):
         """
         Args:
@@ -90,6 +91,7 @@ class NAR(Base):
                     return_all_resp=True,
                     shift_targ_list=False,
                     quant_levels=quant_levels,
+                    sampling_temperature=sampling_temperature,
                 )
                 hyp_resp_lists.append(hyp_resp_list)
 
