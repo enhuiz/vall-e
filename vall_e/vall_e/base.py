@@ -263,7 +263,7 @@ class MultiEmbedding(nn.Module):
         for xi in x_list:
             xi = F.one_hot(xi, num_classes=self.n_tokens)  # t l' k
             xi = F.pad(xi, (0, 0, 0, w.shape[0] - xi.shape[1]))  # t l k
-            padded_x_list.append(xi.float())
+            padded_x_list.append(xi.to(w))
 
         x = torch.cat(padded_x_list)  # n l k
         x = einsum("l k d, n l k -> n d", w, x)
