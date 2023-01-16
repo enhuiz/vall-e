@@ -1,5 +1,4 @@
 import torch
-from einops import rearrange
 from torch import Tensor
 
 from .base import Base
@@ -30,85 +29,85 @@ class NAR(Base):
         self,
         text_list: list[Tensor],
         proms_list: list[Tensor],
-        *,
-        resp_list: list[Tensor] | None = None,
-        resps_list: list[Tensor] | None = None,
-        sampling_temperature: float = 1.0,
+        resps_list: list[Tensor],
+        sampling_temperature: float = 0.2,
     ):
         """
         Args:
             text_list: [t] * b
-            proms_list: [t' k] * b
-            resp_list: [t'] * b, quants at level 0.
-            resps_list: [t''] * b, 8 quantization levels for training.
+            proms_list: [t' l] * b, l=8
+            resps_list: [t'' l] * b, l=1 or 8, 1 for testing and 8 for training.
         Returns:
-            y: logits of last output, b k
+            [t'' l], l=8 if testing. empty list will be returned during training.
         """
-        if (resp_list is None) == (resps_list is None):
-            raise ValueError(
-                "Given one and only one, either resp_list (generation) or resps_list (training)."
-            )
 
-        if resps_list is not None:
-            levels = {r.shape[-1] for r in resps_list}
-            if any(level != self.n_resp_levels + 1 for level in levels):
-                raise ValueError(
-                    f"resps_list should have exactly {self.n_resp_levels + 1} levels, but got {levels}."
-                )
+        n_levels_set = {r.shape[-1] for r in resps_list}
+
+        if len(n_levels_set) > 1:
+            raise ValueError(f"Please give only one level, got {n_levels_set}.")
+
+        n_levels = next(iter(n_levels_set))
 
         device = text_list[0].device
 
-        if resp_list is None:
+        if n_levels == self.n_resp_levels + 1:
             assert resps_list is not None
 
             quant_levels = torch.randint(0, self.n_resp_levels, (len(resps_list),))
 
-            curr_resp_list = [o[..., l] for o, l in zip(resps_list, quant_levels)]
-            next_resp_list = [o[..., l + 1] for o, l in zip(resps_list, quant_levels)]
+            prev_list = [o[..., : l + 1] for o, l in zip(resps_list, quant_levels)]
+            targ_list = [o[..., l + 1] for o, l in zip(resps_list, quant_levels)]
 
             quant_levels = quant_levels.to(device=device)
 
             _ = super().forward(
                 text_list,
                 proms_list,
-                curr_resp_list,
-                next_resp_list,
+                prev_list,
+                targ_list,
                 return_all_resp=True,
                 shift_targ_list=False,
                 quant_levels=quant_levels,
             )
 
             # Yes, just nothing as we are training
-            hyp_resp_lists = []
+            prev_list = []
         else:
-            hyp_resp_lists = [resp_list]
-            for level in range(self.n_resp_levels):
+            prev_list = resps_list
+
+            while True:
+                level = prev_list[0].shape[-1] - 1
+
+                if level >= self.n_resp_levels:
+                    break
+
                 quant_levels = torch.full((len(text_list),), level, device=device)
-                hyp_resp_list = super().forward(
+
+                resp_list = super().forward(
                     text_list,
                     proms_list,
-                    hyp_resp_lists[-1],
+                    prev_list,
                     return_all_resp=True,
                     shift_targ_list=False,
                     quant_levels=quant_levels,
                     sampling_temperature=sampling_temperature,
                 )
-                hyp_resp_lists.append(hyp_resp_list)
 
-        hyp_resps_list = [
-            *map(lambda ts: torch.stack(ts, dim=-1), zip(*hyp_resp_lists))
-        ]
+                prev_list = [
+                    torch.cat([rs, r.unsqueeze(-1)], dim=-1)
+                    for rs, r in zip(prev_list, resp_list)
+                ]
 
-        return hyp_resps_list
+        return prev_list
 
 
 def example_usage():
     from functools import partial
+    from pathlib import Path
 
-    import soundfile
     from einops import repeat
 
-    from ..emb.qnt import decode
+    from ..emb.qnt import decode_to_file
     from ..utils import gather_attribute
 
     device = "cuda"
@@ -119,41 +118,45 @@ def example_usage():
     model = NAR(num_qnts).to(device)
 
     text_list = [
-        torch.tensor([1, 2, 3], device=device),
         torch.tensor([2, 3], device=device),
     ]
 
-    x8 = partial(repeat, pattern="t -> t q", q=8)
+    x8 = partial(repeat, pattern="t -> t l", l=8)
     proms_list = [
-        x8(torch.tensor([1, 2, 3], device=device)),
         x8(torch.tensor([2, 3], device=device)),
     ]
 
-    resp_list = [
-        torch.tensor([1, 2, 3], device=device),
-        resps[0].to(device),
+    resps_x1_list = [
+        resps[:1].t().to(device),
     ]
 
-    resps_list = [
-        x8(torch.tensor([1, 2, 3], device=device)),
+    resps_x8_list = [
         resps.t().to(device),
     ]
 
-    out = model(text_list, proms_list, resp_list=resp_list)
-    codes = rearrange(out[1], "t k -> 1 k t")
-    print(codes)
-    wavs, sr = decode(codes)
-    soundfile.write("data/test/test.nar.init.wav", wavs.cpu()[0, 0], sr)
+    codes = model(
+        text_list,
+        proms_list,
+        resps_list=resps_x1_list,
+        sampling_temperature=0.2,
+    )[0]
+
+    decode_to_file(
+        codes,
+        Path("data/test/test.nar.init.wav"),
+    )
 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-    for i in range(100):
+    for i in range(200):
         optimizer.zero_grad()
-        _ = model(text_list, proms_list, resps_list=resps_list)
+
+        _ = model(text_list, proms_list, resps_list=resps_x8_list)
 
         losses = gather_attribute(model, "loss")
         loss = sum(losses.values())
         loss.backward()
+
         optimizer.step()
 
         if i % 20 == 0:
@@ -161,10 +164,22 @@ def example_usage():
             stats["loss"] = loss.item()
             print(f"iter={i}, {stats}.")
 
-    out = model(text_list, proms_list, resp_list=resp_list)
-    codes = rearrange(out[1], "t k -> 1 k t")
-    wavs, sr = decode(codes)
-    soundfile.write("data/test/test.nar.recon.wav", wavs.cpu()[0, 0], sr)
+    for i in range(1, 8):
+        resps_list = [
+            resps[:i].t().to(device),
+        ]
+
+        codes = model(
+            text_list,
+            proms_list,
+            resps_list=resps_list,
+            sampling_temperature=0.2,
+        )[0]
+
+        decode_to_file(
+            codes,
+            Path(f"data/test/test.nar.1-{i}.wav"),
+        )
 
 
 if __name__ == "__main__":

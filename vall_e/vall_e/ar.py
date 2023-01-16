@@ -33,6 +33,10 @@ class AR(Base):
             return l
         return l[: indices.min().item()]
 
+    @staticmethod
+    def _unsqueeze_list(x_list, axis=-1):
+        return [x.unsqueeze(dim=axis) for x in x_list]
+
     def forward(
         self,
         text_list: list[Tensor],
@@ -45,7 +49,7 @@ class AR(Base):
             return super().forward(
                 text_list,
                 proms_list,
-                resp_list,
+                self._unsqueeze_list(resp_list),
                 resp_list,
                 quant_levels=None,
                 shift_targ_list=True,
@@ -75,7 +79,7 @@ class AR(Base):
             r = super().forward(
                 text_list,
                 proms_list,
-                resp_list,
+                self._unsqueeze_list(resp_list),
                 sampling_temperature=sampling_temperature,
             )
             stopped |= r == self.stop_token
@@ -105,7 +109,7 @@ def example_usage():
         torch.tensor([2, 3], device=device),
     ]
 
-    x8 = partial(repeat, pattern="t -> t q", q=8)
+    x8 = partial(repeat, pattern="t -> t l", l=8)
     proms_list = [
         x8(torch.tensor([1, 2, 3], device=device)),
         x8(torch.tensor([2, 3], device=device)),
