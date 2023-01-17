@@ -2,3 +2,7 @@ data_dirs: [data/test]
 
 model: nar-quarter
 batch_size: 1
+eval_batch_size: 1
+save_ckpt_every: 500
+eval_every: 500
+max_iter: 1000

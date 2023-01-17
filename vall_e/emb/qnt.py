@@ -52,7 +52,7 @@ def _replace_file_extension(path, suffix):
 
 
 @torch.inference_mode()
-def encode(wav, sr, device="cuda"):
+def encode(wav: Tensor, sr: int, device="cuda"):
     """
     Args:
         wav: (t)
@@ -65,6 +65,13 @@ def encode(wav, sr, device="cuda"):
     encoded_frames = model.encode(wav)
     qnt = torch.cat([encoded[0] for encoded in encoded_frames], dim=-1)  # (b q t)
     return qnt
+
+
+def encode_from_file(path, device="cuda"):
+    wav, sr = torchaudio.load(str(path))
+    if wav.shape[0] == 2:
+        wav = wav[:1]
+    return encode(wav, sr, device)
 
 
 def main():
@@ -80,10 +87,7 @@ def main():
         out_path = _replace_file_extension(path, ".qnt.pt")
         if out_path.exists():
             continue
-        wav, sr = torchaudio.load(path)
-        if wav.shape[0] == 2:
-            wav = wav[:1]
-        qnt = encode(wav, sr)
+        qnt = encode_from_file(path)
         torch.save(qnt.cpu(), out_path)
 
 

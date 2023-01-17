@@ -220,7 +220,7 @@ def _load_train_val_paths():
     val_paths = []
 
     for data_dir in cfg.data_dirs:
-        paths.extend(tqdm(data_dir.rglob("**/*.qnt.pt")))
+        paths.extend(tqdm(data_dir.rglob("*.qnt.pt")))
 
     if len(paths) == 0:
         raise RuntimeError(f"Failed to find any .qnt.pt file in {cfg.data_dirs}.")
@@ -244,7 +244,7 @@ def _load_train_val_paths():
 def _load_test_paths():
     test_paths = []
     for data_dir in cfg.test_data_dirs:
-        test_paths.extend(data_dir.rglob("**/*.asr.txt"))
+        test_paths.extend(data_dir.rglob("*.phn.txt"))
     test_paths = sorted(test_paths)
     return test_paths
 
