@@ -1,4 +1,6 @@
-<img src="./vall-e.png" width="550px"></img>
+<p align="center">
+<img src="./vall-e.png" width="500px"></img>
+</p>
 
 # VALL-E
 
@@ -25,8 +27,6 @@ git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
 ```
 
 Note that the code is only tested under `Python 3.10.7`.
-
-## Usage
 
 ### Training
 
@@ -79,7 +79,7 @@ python -m vall_e <text> <ref_path> <out_path> --ar-ckpt zoo/ar.pt --nar-ckpt zoo
 - [x] Implement AdaLN for NAR model.
 - [x] Sample-wise quantization level sampling for NAR training.
 - [ ] Pre-trained checkpoint and demos on LibriTTS
-- [x] CLI synthesis interface
+- [x] Synthesis CLI
 
 ## Notice
 
