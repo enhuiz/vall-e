@@ -48,6 +48,8 @@ class Config(ConfigBase):
     gradient_accumulation_steps: int = 1
     sampling_temperature: float = 1.0
 
+    cache_dataloader: bool = False
+
     @cached_property
     def get_spkr(self):
         return eval(self.spkr_name_getter)
@@ -87,7 +89,9 @@ class Config(ConfigBase):
 
     @cached_property
     def diskcache(self):
-        return diskcache.Cache(self.cache_dir).memoize
+        if self.cache_dataloader:
+            return diskcache.Cache(self.cache_dir).memoize
+        return lambda: lambda x: x
 
 
 cfg = Config.from_cli()

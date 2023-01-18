@@ -105,6 +105,9 @@ class VALLEDatset(Dataset):
             p for p in self.paths if len(self.paths_by_spkr_name[_get_spkr_name(p)]) > 1
         ]
 
+        if len(self.paths) == 0:
+            raise ValueError("No valid path is found. ")
+
         if training:
             self.sampler = Sampler(self.paths, [_get_spkr_name])
         else:
