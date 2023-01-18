@@ -30,7 +30,7 @@ def load_engines():
 def main():
     setup_logging(cfg.log_dir)
 
-    train_dl, train_for_val_dl, val_dl, test_dl = create_train_val_dataloader()
+    train_dl, subtrain_dl, val_dl = create_train_val_dataloader()
 
     def train_feeder(engines, batch, name):
         model = engines["model"]
@@ -68,8 +68,7 @@ def main():
         log_dir = cfg.log_dir / str(engines.global_step) / name
         stats = defaultdict(list)
         for batch in tqdm(dl):
-            batch: dict
-            batch = to_device(batch, cfg.device)
+            batch: dict = to_device(batch, cfg.device)
 
             if cfg.model.startswith("ar"):
                 resp_list = model(
@@ -114,9 +113,8 @@ def main():
         _logger.info(f"{json.dumps(stats)}.")
 
     def eval_fn(engines):
-        run_eval(engines, "train_for_val", train_for_val_dl)
+        run_eval(engines, "subtrain", subtrain_dl)
         run_eval(engines, "val", val_dl)
-        run_eval(engines, "test", test_dl)
 
     trainer.train(
         engines_loader=load_engines,
