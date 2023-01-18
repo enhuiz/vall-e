@@ -11,7 +11,6 @@ from .utils import Config as ConfigBase
 class Config(ConfigBase):
     data_root: Path = Path("data")
     data_dirs: list[Path] = field(default_factory=lambda: [])
-    test_data_dirs: list[Path] = field(default_factory=lambda: [])
 
     @property
     def sample_rate(self):
