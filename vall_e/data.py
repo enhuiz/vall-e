@@ -101,8 +101,8 @@ class VALLEDatset(Dataset):
             p for p in self.paths if len(self.paths_by_spkr_name[cfg.get_spkr(p)]) > 1
         ]
 
-        if len(self.paths) == 0:
-            raise ValueError("No valid path is found. ")
+        if len(self.paths) == 0 and training:
+            raise ValueError("No valid path is found for training.")
 
         if training:
             self.sampler = Sampler(self.paths, [cfg.get_spkr])
@@ -200,7 +200,7 @@ def _seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def _create_dl(dataset, training):
+def _create_dataloader(dataset, training):
     return DataLoader(
         dataset=dataset,
         batch_size=cfg.batch_size if training else cfg.eval_batch_size,
@@ -265,8 +265,8 @@ def create_datasets():
 def create_train_val_dataloader():
     train_dataset, val_dataset = create_datasets()
 
-    train_dl = _create_dl(train_dataset, training=True)
-    val_dl = _create_dl(val_dataset, training=False)
+    train_dl = _create_dataloader(train_dataset, training=True)
+    val_dl = _create_dataloader(val_dataset, training=False)
 
     _logger.info(str(train_dataset.phone_symmap))
     _logger.info(str(train_dataset.spkr_symmap))
@@ -278,7 +278,7 @@ def create_train_val_dataloader():
     subtrain_dataset.interleaved_reorder_(cfg.get_spkr)
     subtrain_dataset.head_(cfg.max_num_val)
     subtrain_dataset.training_(False)
-    subtrain_dl = _create_dl(subtrain_dataset, training=False)
+    subtrain_dl = _create_dataloader(subtrain_dataset, training=False)
     assert isinstance(subtrain_dl.dataset, VALLEDatset)
 
     return train_dl, subtrain_dl, val_dl
