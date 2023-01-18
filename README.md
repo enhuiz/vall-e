@@ -10,6 +10,8 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 
 ## Get Started
 
+> A toy Google Colab example: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1wEze0kQ0gt9B3bQmmbtbSXCoCTpq5vg-?usp=sharing).
+
 ### Requirements
 
 Since the trainer is based on [DeepSpeed](https://github.com/microsoft/DeepSpeed#requirements), you will need to have a GPU that DeepSpeed has developed and tested against, as well as a CUDA or ROCm compiler pre-installed to install this package.
@@ -28,7 +30,7 @@ git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
 
 Note that the code is only tested under `Python 3.10.7`.
 
-### Training
+### Train
 
 1. Put your data into a folder, e.g. `data/your_data`. Audio files should be named with the suffix `.wav` and text files with `.normalized.txt`.
 
@@ -54,7 +56,7 @@ python -m vall_e.train yaml=config/your_data/ar_or_nar.yml
 
 You may quit your training any time by just typing `quit` in your CLI. The latest checkpoint will be automatically saved.
 
-6. Export trained models:
+### Export
 
 Both trained models need to be exported to a certain path. To export either of them, run:
 
