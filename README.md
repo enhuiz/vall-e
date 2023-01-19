@@ -11,6 +11,8 @@ An unofficial PyTorch implementation of [VALL-E](https://valle-demo.github.io/),
 ## Get Started
 
 > A toy Google Colab example: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1wEze0kQ0gt9B3bQmmbtbSXCoCTpq5vg-?usp=sharing).
+> Please note that this example overfits a single utterance under the `data/test` and is not usable.
+> The pretrained model is yet to come. 
 
 ### Requirements
 
