@@ -30,12 +30,12 @@ docker run -it --gpus=all --net=host --ipc=host -v $(pwd):/app/ valle/python3.10
 ```
 The last command will run the docker image using all the available GPUs, you can refer to the [documentation](https://docs.docker.com/config/containers/resource_constraints/#:~:text=an%20error%20occurs.-,GPU,-%F0%9F%94%97) to specify the GPUs you want to use. Also, it will use a volume that keeps all of the container's files shared between the container's `/app` and the current working directory of the server `$(pwd)`.
 
-1. Pip
+2. Pip
 ```
 pip install git+https://github.com/enhuiz/vall-e
 ```
 
-1. Clone
+3. Clone
 
 ```
 git clone --recurse-submodules https://github.com/enhuiz/vall-e.git
