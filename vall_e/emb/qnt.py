@@ -83,13 +83,15 @@ def main():
     paths = [*args.folder.rglob(f"*{args.suffix}")]
     random.shuffle(paths)
 
-    for path in tqdm(paths):
+    for idx, path in tqdm(enumerate(paths)):
         out_path = _replace_file_extension(path, ".qnt.pt")
         if out_path.exists():
-            continue
+            paths.pop(idx)
+
+    for path in tqdm(paths):
+        out_path = _replace_file_extension(path, ".qnt.pt")
         qnt = encode_from_file(path)
         torch.save(qnt.cpu(), out_path)
-
 
 if __name__ == "__main__":
     main()
