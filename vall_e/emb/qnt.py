@@ -90,11 +90,8 @@ def main():
 
     for path in tqdm(paths):
         out_path = _replace_file_extension(path, ".qnt.pt")
-        if out_path.exists():
-            continue
         qnt = encode_from_file(path)
         torch.save(qnt.cpu(), out_path)
-        del qnt
 
 if __name__ == "__main__":
     main()
