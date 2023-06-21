@@ -5,6 +5,10 @@ from collections import defaultdict
 import torch
 from tqdm import tqdm
 
+from deepspeed.__init__ import DeepSpeedConfig
+from deepspeed.accelerator import get_accelerator
+from deepspeed.runtime import zero
+
 from .config import cfg
 from .data import create_train_val_dataloader
 from .emb import qnt
@@ -13,14 +17,24 @@ from .vall_e import get_model
 
 _logger = logging.getLogger(__name__)
 
+dist = None
+
+# Disable zero.Init context if it's currently enabled
+zero.partition_parameters.shutdown_init_context()
 
 def load_engines():
     model = get_model(cfg.model)
+    
+    global dist
+    from deepspeed import comm as dist
+    dist_backend = get_accelerator().communication_backend_name()
+    dist.init_distributed(dist_backend=dist_backend)
 
     engines = dict(
         model=trainer.Engine(
             model=model,
             config=cfg.ds_cfg,
+            config_class=DeepSpeedConfig(config=cfg.ds_cfg)
         ),
     )
 
